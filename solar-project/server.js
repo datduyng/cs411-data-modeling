@@ -29,7 +29,7 @@ async function get_mongo_conn() {
     state_station_cache = await new mongo.MongoCache(conn, { mongo_collection_name: "state_station_cache", time_to_live: 50 }).init();
     misc_cache = await new mongo.MongoCache(conn, {
         mongo_collection_name: "misc_cache", time_to_live: 1000
-    });
+    }).init();
     return conn;
 }
 
