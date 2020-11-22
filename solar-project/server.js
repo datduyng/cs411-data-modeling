@@ -77,6 +77,12 @@ function log_request(req, str) {
     log(`${chalk.yellow(req.originalUrl)}: ${str}`)
 }
 
+app.get('/clearcache', async (req, res) => {
+    await state_station_cache.clear();
+    await misc_cache.clear();
+    return res.status(200).send("OK");
+});
+
 // index page
 app.get('/', async function (req, res) {
     log_request(req, "Request main page")
@@ -100,7 +106,13 @@ app.get('/', async function (req, res) {
     let elevs = await misc_cache.get(ELEV_CACHE_KEY, getElevs);
     //res.render('pages/index', { ejsElev: { elevation: elev.value } });
 
-    res.render('pages/index', { ejsD: { state: states.value },
+    let getFeaturedStations = async () => await db.query(`SELECT s.* FROM station_recording sr
+        INNER JOIN station s ON s.code=sr.station_code
+        GROUP BY sr.station_code    
+    `);
+    let featuredStations = await misc_cache.get("featured station UNIQUE key", getFeaturedStations);
+
+    res.render('pages/index', { ejsD: { state: states.value, featuredStations: featuredStations.value },
                                 ejsLong: { longitude: longs.value },
                                 ejsLat: { latitude: lats.value },
                                 ejsElev: { elevation: elevs.value } });

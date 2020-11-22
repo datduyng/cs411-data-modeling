@@ -13,15 +13,28 @@
 
     <div id="index-meta-map" style="outline: 1px solid black;"></div>
 
-    <div>
-      <h3>Select a specific station from a state</h3>
-      <label for="stations">Choose a station:</label>
-      <select name="stations" id="index-stations-select">
-        <option value=""></option>
-      </select>
-    </div> 
-    <div id="index-station-display">
+    <div class="row">
+      <div class="col-sm">
+        <div id="index-featured-station-wrapper">
+          <h4>Featured stations</h4>
+          <div id="index-featured-station">
+          </div>
+        </div>  
+      </div>
+
+      <div class="col-sm">
+        <h3>Select a specific station from a state</h3>
+        <p>Note: We only store 20% of the huge data from <a href="https://www.kaggle.com/us-doe/tmy3-solar?select=tmy3.csv" target="_blank">kaggle</a>, therefore, many station won't have any data recording</p>
+        <label for="stations">Choose a station:</label>
+        <select name="stations" id="index-stations-select">
+          <option value=""></option>
+        </select>
+        <div id="index-station-display">
+        </div>
+      </div>
     </div>
+
+
   </main>
 
   <%- include('../js/main.ejs'); %>

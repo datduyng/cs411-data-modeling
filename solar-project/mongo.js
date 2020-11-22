@@ -53,6 +53,10 @@ class MongoCache {
         });
         return newObj;
     }
+
+    async clear() {
+        await this.dbo.collection(this.collection_name).remove({});
+    }
 }
 
 module.exports = {
