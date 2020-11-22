@@ -8,7 +8,7 @@
   let station_card_template = (station, width='18rem') => `
     <div class="card" style="width: ${width};">
       <div class="card-body">
-        <a href="#" class="card-link"><h5 class="card-title">${station.station_name} - (Class ${station.class})</h5></a>
+        <a href="/state/${station.code}/details" class="card-link"><h5 class="card-title">${station.station_name} - (Class ${station.class})</h5></a>
         <h6 class="card-subtitle mb-2 text-muted">Location: ${station.state} (${station.latitude}, ${station.longitude})</h6>
       </div>
     </div>
