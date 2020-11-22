@@ -2,6 +2,19 @@
 
   let stnData = <%- JSON.stringify(ejsD.stnData) %>;
   let states = <%- JSON.stringify(ejsD.state) %>; // this come from ejs
+  let featuredStations = <%- JSON.stringify(ejsD.featuredStations) %>;
+
+  let station_card_template = (station, width='18rem') => `
+    <div class="card" style="width: ${width};">
+      <div class="card-body">
+        <a href="/state/${station.code}/details" class="card-link"><h5 class="card-title">${station.station_name} - (Class ${station.class})</h5></a>
+        <h6 class="card-subtitle mb-2 text-muted">Location: ${station.state} (${station.latitude}, ${station.longitude})</h6>
+      </div>
+    </div>
+  `;
+  (featuredStations || []).forEach((el) => {
+    $('#index-featured-station').append(station_card_template(el, ''));
+  });
   const INDEX_STATION_SELECT_ID = '#index-stations-select';
   const MAP_ID = 'index-meta-map';
   $(document).ready(function () {
@@ -19,15 +32,10 @@
       $.get(`/_api/state/${this.value}/stations`, (data) => {
         $('#index-station-display').empty();
         (data?.stations || []).forEach(element => {
-          $('#index-station-display').append(`
-            <div class="card" style="">
-              <div class="card-body">
-                <a href="#" class="card-link"><h5 class="card-title">${element.station_name} - (Class ${element.class})</h5></a>
-                <h6 class="card-subtitle mb-2 text-muted">Location: ${element.state} (${element.latitude}, ${element.longitude})</h6>
-              </div>
-            </div>
-          `);
+          $('#index-station-display').append(station_card_template(element, ''));
         })
+      }).fail(() => {
+        alert("Error when fetching stations")
       });
     });
 

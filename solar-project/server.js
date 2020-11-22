@@ -77,6 +77,12 @@ function log_request(req, str) {
     log(`${chalk.yellow(req.originalUrl)}: ${str}`)
 }
 
+app.get('/clearcache', async (req, res) => {
+    await state_station_cache.clear();
+    await misc_cache.clear();
+    return res.status(200).send("OK");
+});
+
 // index page
 app.get('/', async function (req, res) {
     log_request(req, "Request main page")
@@ -88,8 +94,15 @@ app.get('/', async function (req, res) {
     const STN_CACHE_KEY = "all stations summarized by yearly GHI sum & lat-lon";
     let stnInfo = await misc_cache.get(STN_CACHE_KEY, getGHIlatlong);
 
+    let getFeaturedStations = async () => await db.query(`SELECT s.* FROM station_recording sr
+        INNER JOIN station s ON s.code=sr.station_code
+        GROUP BY sr.station_code    
+    `);
+    let featuredStations = await misc_cache.get("featured station UNIQUE key", getFeaturedStations);
+
     res.render('pages/index', { ejsD: { state: states.value,
-                                        stnData: stnInfo.value },});
+                                        stnData: stnInfo.value, 
+                                        featuredStations: featuredStations.value },});
                                     });
 
 
