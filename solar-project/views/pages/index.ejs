@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -8,21 +9,19 @@
 <body class="container">
   <main>
     <div class="jumbotron">
-      <h1>This is great</h1>
-      <p>Welcome to templating using EJS</p>
+      <h1 style="text-align: center;">Solar Radiation Visualization</h1>
     </div>
 
-
+    <div id="index-meta-map" style="outline: 1px solid black;"></div>
 
     <div>
+      <h3>Select a specific station from a state</h3>
       <label for="stations">Choose a station:</label>
       <select name="stations" id="index-stations-select">
-        <option value="DEFAULT"></option>
+        <option value=""></option>
       </select>
     </div> 
-
-    <div id='index-station-display'>
-      
+    <div id="index-station-display">
     </div>
   </main>
 

@@ -24,12 +24,18 @@ app.set('view engine', 'ejs');
 
 let state_station_cache, misc_cache;
 async function get_mongo_conn() {
-    let conn = await mongo.conn();
+    let conn;
+    try{
+        conn = await mongo.conn();
+    } catch (error) {
+        log(error);
+        log(chalk.red(`MongoDB connection error. Please make sure MongoDB is running`)); 
+    }
     //initalize cache here
     state_station_cache = await new mongo.MongoCache(conn, { mongo_collection_name: "state_station_cache", time_to_live: 50 }).init();
     misc_cache = await new mongo.MongoCache(conn, {
         mongo_collection_name: "misc_cache", time_to_live: 1000
-    });
+    }).init();
     return conn;
 }
 
@@ -43,12 +49,13 @@ db.conn.query('SELECT 1 + 1 AS solution', (error, results, fields) => {
         log(error);
         log(chalk.red(`
 Mysql connection error. Please make sure Mysql is running. And following step is done
-1. Create a database name 'solar_project'
+ 1. Make changes to .env.dev file
+ 2. Create a database name 'solar_project'
     mysql -u {USERNAME} -p # This will bring you into the MySQL shell prompt. Next, create a new database with the following command
     mysql> CREATE DATABASE solar_project;
     mysql> exit;
-2. unzip the ./artifacts/solar_project.zip
-3. Run 'mysql -u {USERNAME} -p solar_project < ./artifacts/solar_project.sql'    
+3. unzip the ./artifacts/solar_project.zip
+4. Run 'mysql -u {USERNAME} -p solar_project < ./artifacts/solar_project.sql'    
 `));
         process.exit();
     }
@@ -76,8 +83,14 @@ app.get('/', async function (req, res) {
     const STATES_CACHE_KEY = "all state in the us - unique key";
     let getStates = async () => await db.query("SELECT * FROM state");
     let states = await misc_cache.get(STATES_CACHE_KEY, getStates)
-    res.render('pages/index', { ejsD: { state: states.value } });
-});
+
+    let getGHIlatlong = async () => await db.query("SELECT station_recording.station_code,YEAR(station_recording.date) as 'year', SUM(`DNI (W/m^2)`) as DNI_sum, station.latitude, station.longitude FROM station_recording join station on station.code = station_recording.station_code GROUP BY YEAR(date), station_code;");
+    const STN_CACHE_KEY = "all stations summarized by yearly GHI sum & lat-lon";
+    let stnInfo = await misc_cache.get(STN_CACHE_KEY, getGHIlatlong);
+
+    res.render('pages/index', { ejsD: { state: states.value,
+                                        stnData: stnInfo.value },});
+                                    });
 
 
 app.get('/_api/state/:state/stations', async (req, res) => {

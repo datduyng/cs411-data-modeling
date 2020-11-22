@@ -1,6 +1,9 @@
 <script>
+
+  let stnData = <%- JSON.stringify(ejsD.stnData) %>;
   let states = <%- JSON.stringify(ejsD.state) %>; // this come from ejs
   const INDEX_STATION_SELECT_ID = '#index-stations-select';
+  const MAP_ID = 'index-meta-map';
   $(document).ready(function () {
     (states || []).forEach(element => {
       $(INDEX_STATION_SELECT_ID)
@@ -8,19 +11,50 @@
           .attr("value", element.code)
           .text(element.name));
     });
-
-    $(INDEX_STATION_SELECT_ID).on('change', function() {
-      if (!this.value) { return; }
+    $(INDEX_STATION_SELECT_ID).on('change', function () {
+      if (!this.value) {
+        $('#index-station-display').empty();
+        return;
+      }
       $.get(`/_api/state/${this.value}/stations`, (data) => {
         $('#index-station-display').empty();
         (data?.stations || []).forEach(element => {
           $('#index-station-display').append(`
-            <div>
-              <h4>${element.station_name}</h4>
+            <div class="card" style="">
+              <div class="card-body">
+                <a href="#" class="card-link"><h5 class="card-title">${element.station_name} - (Class ${element.class})</h5></a>
+                <h6 class="card-subtitle mb-2 text-muted">Location: ${element.state} (${element.latitude}, ${element.longitude})</h6>
+              </div>
             </div>
           `);
         })
       });
     });
+
+
+    let unpack = (rows, key) => rows.map(row => row[key])
+    let latitude = unpack(stnData, 'latitude');
+    let longitude = unpack(stnData, 'longitude');
+    let DNI_sum = unpack(stnData, 'DNI_sum')
+    let years = unpack(stnData, 'year')
+    console.log(latitude);
+
+
+
+    scl = [[0, 'rgb(150,0,90)'],[0.125, 'rgb(0, 0, 200)'],[0.25,'rgb(0, 25, 255)'],[0.375,'rgb(0, 152, 255)'],[0.5,'rgb(44, 255, 150)'],[0.625,'rgb(151, 255, 0)'],[0.75,'rgb(255, 234, 0)'],[0.875,'rgb(255, 111, 0)'],[1,'rgb(255, 0, 0)']];
+    var data = [{ type: 'scattermapbox', 
+              //mode : 'markers',
+              text: DNI_sum,
+              lon: longitude, 
+              lat: latitude,
+              marker: { color: "fuchsia", size: 4 }
+              }];
+    var layout = {
+      width: 800, height: 600,
+      mapbox: {
+        style: 'open-street-map', center: { lat: 41, lon: -98 }, zoom: 7
+      }
+    };
+    Plotly.newPlot(MAP_ID, data, layout);
   });
 </script>
