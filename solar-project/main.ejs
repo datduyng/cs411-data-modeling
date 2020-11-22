@@ -1,0 +1,52 @@
+<script>
+  let longs = <%- JSON.stringify(ejsLong.longitude) %>;
+  let lats = <%- JSON.stringify(ejsLat.latitude) %>;
+  let elevs = <%- JSON.stringify(ejsElev.elevation) %>;
+  let states = <%- JSON.stringify(ejsD.state) %>; // this come from ejs
+  const INDEX_STATION_SELECT_ID = '#index-stations-select';
+  const MAP_ID = 'map'
+  $(document).ready(function () {
+    (states || []).forEach(element => {
+      $(INDEX_STATION_SELECT_ID)
+        .append($("<option></option>")
+          .attr("value", element.code)
+          .text(element.name));
+    });
+    
+
+    $(INDEX_STATION_SELECT_ID).on('change', function() {
+      if (!this.value) { return; }
+      $.get(`/_api/state/${this.value}/stations`, (data) => {
+        $('#index-station-display').empty();
+        (data?.stations || []).forEach(element => {
+          $('#index-station-display').append(`
+            <div>
+              <h4>${element.station_name}</h4>
+            </div>
+          `);
+        })
+      });
+    });
+    
+    var longitudes = [];
+    (longs || []).forEach(element => {
+      longitudes.push(element.longitude);
+    });
+    var latitudes = [];
+    (lats || []).forEach(element => {
+      latitudes.push(element.latitude);
+    });
+    var elevations = [];
+    (elevs || []).forEach(element => {
+      elevations.push(element.elevation);
+    });
+
+    var data = [{type: 'densitymapbox', lon: longitudes, lat: latitudes, elev: elevations}];
+    var layout = {width: 800, height: 600, 
+                    mapbox: {style: 'open-street-map', center:{lat:41,lon:-98}, zoom:7
+                  }};
+    Plotly.newPlot(MAP_ID, data, layout);
+
+
+  });
+</script>
