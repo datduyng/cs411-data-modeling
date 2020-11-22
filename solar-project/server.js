@@ -89,22 +89,10 @@ app.get('/', async function (req, res) {
     const STATES_CACHE_KEY = "all state in the us - unique key";
     let getStates = async () => await db.query("SELECT * FROM state");
     let states = await misc_cache.get(STATES_CACHE_KEY, getStates)
-    //res.render('pages/index', { ejsD: { state: states.value } });
 
-    let getLongs = async () => await db.query("SELECT longitude FROM station");
-    const LONG_CACHE_KEY = "all station longs";
-    let longs = await misc_cache.get(LONG_CACHE_KEY, getLongs)
-    //res.render('pages/index', { ejsLong: { longitude: longs.value } });
-
-    let getLats = async () => await db.query("SELECT latitude FROM station");
-    const LAT_CACHE_KEY = "all station lats";
-    let lats = await misc_cache.get(LAT_CACHE_KEY, getLats);
-    //res.render('pages/index', { ejsLat: { latitude: lats.value } });
-
-    let getElevs = async () => await db.query("SELECT elev FROM station");
-    const ELEV_CACHE_KEY = "all station elevations";
-    let elevs = await misc_cache.get(ELEV_CACHE_KEY, getElevs);
-    //res.render('pages/index', { ejsElev: { elevation: elev.value } });
+    let getGHIlatlong = async () => await db.query("SELECT station_recording.station_code,YEAR(station_recording.date) as 'year', SUM(`DNI (W/m^2)`) as DNI_sum, station.latitude, station.longitude FROM station_recording join station on station.code = station_recording.station_code GROUP BY YEAR(date), station_code;");
+    const STN_CACHE_KEY = "all stations summarized by yearly GHI sum & lat-lon";
+    let stnInfo = await misc_cache.get(STN_CACHE_KEY, getGHIlatlong);
 
     let getFeaturedStations = async () => await db.query(`SELECT s.* FROM station_recording sr
         INNER JOIN station s ON s.code=sr.station_code
@@ -112,11 +100,10 @@ app.get('/', async function (req, res) {
     `);
     let featuredStations = await misc_cache.get("featured station UNIQUE key", getFeaturedStations);
 
-    res.render('pages/index', { ejsD: { state: states.value, featuredStations: featuredStations.value },
-                                ejsLong: { longitude: longs.value },
-                                ejsLat: { latitude: lats.value },
-                                ejsElev: { elevation: elevs.value } });
-});
+    res.render('pages/index', { ejsD: { state: states.value,
+                                        stnData: stnInfo.value, 
+                                        featuredStations: featuredStations.value },});
+                                    });
 
 
 app.get('/_api/state/:state/stations', async (req, res) => {

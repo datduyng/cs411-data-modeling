@@ -1,7 +1,6 @@
 <script>
-  let longs = <%- JSON.stringify(ejsLong.longitude) %>;
-  let lats = <%- JSON.stringify(ejsLat.latitude) %>;
-  let elevs = <%- JSON.stringify(ejsElev.elevation) %>;
+
+  let stnData = <%- JSON.stringify(ejsD.stnData) %>;
   let states = <%- JSON.stringify(ejsD.state) %>; // this come from ejs
   let featuredStations = <%- JSON.stringify(ejsD.featuredStations) %>;
 
@@ -18,7 +17,6 @@
   });
   const INDEX_STATION_SELECT_ID = '#index-stations-select';
   const MAP_ID = 'index-meta-map';
-
   $(document).ready(function () {
     (states || []).forEach(element => {
       $(INDEX_STATION_SELECT_ID)
@@ -26,8 +24,6 @@
           .attr("value", element.code)
           .text(element.name));
     });
-
-
     $(INDEX_STATION_SELECT_ID).on('change', function () {
       if (!this.value) {
         $('#index-station-display').empty();
@@ -43,20 +39,24 @@
       });
     });
 
-    var longitudes = [];
-    (longs || []).forEach(element => {
-      longitudes.push(element.longitude);
-    });
-    var latitudes = [];
-    (lats || []).forEach(element => {
-      latitudes.push(element.latitude);
-    });
-    var elevations = [];
-    (elevs || []).forEach(element => {
-      elevations.push(element.elevation);
-    });
 
-    var data = [{ type: 'densitymapbox', lon: longitudes, lat: latitudes, elev: elevations }];
+    let unpack = (rows, key) => rows.map(row => row[key])
+    let latitude = unpack(stnData, 'latitude');
+    let longitude = unpack(stnData, 'longitude');
+    let DNI_sum = unpack(stnData, 'DNI_sum')
+    let years = unpack(stnData, 'year')
+    console.log(latitude);
+
+
+
+    scl = [[0, 'rgb(150,0,90)'],[0.125, 'rgb(0, 0, 200)'],[0.25,'rgb(0, 25, 255)'],[0.375,'rgb(0, 152, 255)'],[0.5,'rgb(44, 255, 150)'],[0.625,'rgb(151, 255, 0)'],[0.75,'rgb(255, 234, 0)'],[0.875,'rgb(255, 111, 0)'],[1,'rgb(255, 0, 0)']];
+    var data = [{ type: 'scattermapbox', 
+              //mode : 'markers',
+              text: DNI_sum,
+              lon: longitude, 
+              lat: latitude,
+              marker: { color: "fuchsia", size: 4 }
+              }];
     var layout = {
       width: 800, height: 600,
       mapbox: {
