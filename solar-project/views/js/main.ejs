@@ -4,7 +4,8 @@
   let elevs = <%- JSON.stringify(ejsElev.elevation) %>;
   let states = <%- JSON.stringify(ejsD.state) %>; // this come from ejs
   const INDEX_STATION_SELECT_ID = '#index-stations-select';
-  const MAP_ID = 'map'
+  const MAP_ID = 'index-meta-map';
+
   $(document).ready(function () {
     (states || []).forEach(element => {
       $(INDEX_STATION_SELECT_ID)
@@ -12,22 +13,28 @@
           .attr("value", element.code)
           .text(element.name));
     });
-    
 
-    $(INDEX_STATION_SELECT_ID).on('change', function() {
-      if (!this.value) { return; }
+
+    $(INDEX_STATION_SELECT_ID).on('change', function () {
+      if (!this.value) { 
+        $('#index-station-display').empty();
+        return; 
+      }
       $.get(`/_api/state/${this.value}/stations`, (data) => {
         $('#index-station-display').empty();
         (data?.stations || []).forEach(element => {
           $('#index-station-display').append(`
-            <div>
-              <h4>${element.station_name}</h4>
+            <div class="card" style="">
+              <div class="card-body">
+                <a href="#" class="card-link"><h5 class="card-title">${element.station_name} - (Class ${element.class})</h5></a>
+                <h6 class="card-subtitle mb-2 text-muted">Location: ${element.state} (${element.latitude}, ${element.longitude})</h6>
+              </div>
             </div>
           `);
         })
       });
     });
-    
+
     var longitudes = [];
     (longs || []).forEach(element => {
       longitudes.push(element.longitude);
@@ -41,10 +48,13 @@
       elevations.push(element.elevation);
     });
 
-    var data = [{type: 'densitymapbox', lon: longitudes, lat: latitudes, z: elevations}];
-    var layout = {width: 800, height: 600, 
-                    mapbox: {style: 'open-street-map', center:{lat:38,lon:-92}, zoom:2
-                  }};
+    var data = [{ type: 'densitymapbox', lon: longitudes, lat: latitudes, z: elevations }];
+    var layout = {
+      width: 800, height: 600,
+      mapbox: {
+        style: 'open-street-map', center: { lat: 38, lon: -92 }, zoom: 2
+      }
+    };
     Plotly.newPlot(MAP_ID, data, layout);
 
 
