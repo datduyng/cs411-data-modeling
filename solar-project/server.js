@@ -24,7 +24,14 @@ app.set('view engine', 'ejs');
 
 let state_station_cache, misc_cache;
 async function get_mongo_conn() {
-    let conn = await mongo.conn();
+    let conn;
+    try{
+        conn = await mongo.conn();
+    } catch (error) {
+        log(error);
+        log(chalk.red(`MongoDB connection error. Please make sure MongoDB is running`)); 
+    }
+    
     //initalize cache here
     state_station_cache = await new mongo.MongoCache(conn, { mongo_collection_name: "state_station_cache", time_to_live: 50 }).init();
     misc_cache = await new mongo.MongoCache(conn, {
