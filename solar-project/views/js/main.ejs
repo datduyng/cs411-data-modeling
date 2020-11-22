@@ -16,9 +16,9 @@
 
 
     $(INDEX_STATION_SELECT_ID).on('change', function () {
-      if (!this.value) { 
+      if (!this.value) {
         $('#index-station-display').empty();
-        return; 
+        return;
       }
       $.get(`/_api/state/${this.value}/stations`, (data) => {
         $('#index-station-display').empty();
@@ -48,11 +48,11 @@
       elevations.push(element.elevation);
     });
 
-    var data = [{ type: 'densitymapbox', lon: longitudes, lat: latitudes, z: elevations }];
+    var data = [{ type: 'densitymapbox', lon: longitudes, lat: latitudes, elev: elevations }];
     var layout = {
       width: 800, height: 600,
       mapbox: {
-        style: 'open-street-map', center: { lat: 38, lon: -92 }, zoom: 2
+        style: 'open-street-map', center: { lat: 41, lon: -98 }, zoom: 7
       }
     };
     Plotly.newPlot(MAP_ID, data, layout);
