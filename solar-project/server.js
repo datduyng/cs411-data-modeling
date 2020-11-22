@@ -24,14 +24,7 @@ app.set('view engine', 'ejs');
 
 let state_station_cache, misc_cache;
 async function get_mongo_conn() {
-    let conn;
-    try{
-        conn = await mongo.conn();
-    } catch (error) {
-        log(error);
-        log(chalk.red(`MongoDB connection error. Please make sure MongoDB is running`)); 
-    }
-    
+    let conn = await mongo.conn();
     //initalize cache here
     state_station_cache = await new mongo.MongoCache(conn, { mongo_collection_name: "state_station_cache", time_to_live: 50 }).init();
     misc_cache = await new mongo.MongoCache(conn, {
@@ -45,13 +38,12 @@ let mongo_conn = (async () => await get_mongo_conn())();
 
 
 
-db.conn.query('SELECT * FROM state', (error, results, fields) => {
+db.conn.query('SELECT 1 + 1 AS solution', (error, results, fields) => {
     if (error) {
         log(error);
         log(chalk.red(`
 Mysql connection error. Please make sure Mysql is running. And following step is done
-1. Make changes to .env.dev file
-2. Create a database name 'solar_project'
+1. Create a database name 'solar_project'
     mysql -u {USERNAME} -p # This will bring you into the MySQL shell prompt. Next, create a new database with the following command
     mysql> CREATE DATABASE solar_project;
     mysql> exit;
@@ -84,7 +76,27 @@ app.get('/', async function (req, res) {
     const STATES_CACHE_KEY = "all state in the us - unique key";
     let getStates = async () => await db.query("SELECT * FROM state");
     let states = await misc_cache.get(STATES_CACHE_KEY, getStates)
-    res.render('pages/index', { ejsD: { state: states.value } });
+    //res.render('pages/index', { ejsD: { state: states.value } });
+
+    let getLongs = async () => await db.query("SELECT longitude FROM station");
+    const LONG_CACHE_KEY = "all station longs";
+    let longs = await misc_cache.get(LONG_CACHE_KEY, getLongs)
+    //res.render('pages/index', { ejsLong: { longitude: longs.value } });
+
+    let getLats = async () => await db.query("SELECT latitude FROM station");
+    const LAT_CACHE_KEY = "all station lats";
+    let lats = await misc_cache.get(LAT_CACHE_KEY, getLats);
+    //res.render('pages/index', { ejsLat: { latitude: lats.value } });
+
+    let getElevs = async () => await db.query("SELECT elev FROM station");
+    const ELEV_CACHE_KEY = "all station elevations";
+    let elevs = await misc_cache.get(ELEV_CACHE_KEY, getElevs);
+    //res.render('pages/index', { ejsElev: { elevation: elev.value } });
+
+    res.render('pages/index', { ejsD: { state: states.value },
+                                ejsLong: { longitude: longs.value },
+                                ejsLat: { latitude: lats.value },
+                                ejsElev: { elevation: elevs.value } });
 });
 
 
