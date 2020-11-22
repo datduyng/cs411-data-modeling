@@ -24,7 +24,13 @@ app.set('view engine', 'ejs');
 
 let state_station_cache, misc_cache;
 async function get_mongo_conn() {
-    let conn = await mongo.conn();
+    let conn;
+    try{
+        conn = await mongo.conn();
+    } catch (error) {
+        log(error);
+        log(chalk.red(`MongoDB connection error. Please make sure MongoDB is running`)); 
+    }
     //initalize cache here
     state_station_cache = await new mongo.MongoCache(conn, { mongo_collection_name: "state_station_cache", time_to_live: 50 }).init();
     misc_cache = await new mongo.MongoCache(conn, {
@@ -43,12 +49,13 @@ db.conn.query('SELECT 1 + 1 AS solution', (error, results, fields) => {
         log(error);
         log(chalk.red(`
 Mysql connection error. Please make sure Mysql is running. And following step is done
-1. Create a database name 'solar_project'
+ 1. Make changes to .env.dev file
+ 2. Create a database name 'solar_project'
     mysql -u {USERNAME} -p # This will bring you into the MySQL shell prompt. Next, create a new database with the following command
     mysql> CREATE DATABASE solar_project;
     mysql> exit;
-2. unzip the ./artifacts/solar_project.zip
-3. Run 'mysql -u {USERNAME} -p solar_project < ./artifacts/solar_project.sql'    
+3. unzip the ./artifacts/solar_project.zip
+4. Run 'mysql -u {USERNAME} -p solar_project < ./artifacts/solar_project.sql'    
 `));
         process.exit();
     }
