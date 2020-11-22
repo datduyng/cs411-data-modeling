@@ -50,7 +50,8 @@ db.conn.query('SELECT * FROM state', (error, results, fields) => {
         log(error);
         log(chalk.red(`
 Mysql connection error. Please make sure Mysql is running. And following step is done
-1. Create a database name 'solar_project'
+1. Make changes to .env.dev file
+2. Create a database name 'solar_project'
     mysql -u {USERNAME} -p # This will bring you into the MySQL shell prompt. Next, create a new database with the following command
     mysql> CREATE DATABASE solar_project;
     mysql> exit;
