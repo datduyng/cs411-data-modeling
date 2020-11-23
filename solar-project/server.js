@@ -22,7 +22,7 @@ app.set('Secret', process.env.SECRET);
 app.set('view engine', 'ejs');
 
 
-let state_station_cache, misc_cache;
+let state_station_cache, misc_cache, station_detail_cache;
 async function get_mongo_conn() {
     let conn;
     try{
@@ -36,6 +36,8 @@ async function get_mongo_conn() {
     misc_cache = await new mongo.MongoCache(conn, {
         mongo_collection_name: "misc_cache", time_to_live: 1000
     }).init();
+    station_detail_cache = await new mongo.MongoCache(conn, { mongo_collection_name: "station_detail_cache", time_to_live: 50 }).init();
+
     return conn;
 }
 
@@ -90,7 +92,7 @@ app.get('/', async function (req, res) {
     let getStates = async () => await db.query("SELECT * FROM state");
     let states = await misc_cache.get(STATES_CACHE_KEY, getStates)
 
-    let getGHIlatlong = async () => await db.query("SELECT station_recording.station_code,YEAR(station_recording.date) as 'year', SUM(`DNI (W/m^2)`) as DNI_sum, station.latitude, station.longitude FROM station_recording join station on station.code = station_recording.station_code GROUP BY YEAR(date), station_code;");
+    let getGHIlatlong = async () => await db.query("SELECT station_recording.station_code, YEAR(station_recording.date) as 'year', SUM(`DNI (W/m^2)`) as DNI_sum, station.latitude, station.longitude, station.station_name FROM station_recording INNER JOIN station on station.code = station_recording.station_code GROUP BY station_code, YEAR(date), station.station_name ORDER BY station_code, YEAR(date)");    
     const STN_CACHE_KEY = "all stations summarized by yearly GHI sum & lat-lon";
     let stnInfo = await misc_cache.get(STN_CACHE_KEY, getGHIlatlong);
 
@@ -105,6 +107,14 @@ app.get('/', async function (req, res) {
                                         featuredStations: featuredStations.value },});
                                     });
 
+// details page
+app.get('/station/:stationCode/details', async function (req, res) {
+    if(!req.params.stationCode){
+        return res.status(400).send("Invalid State Code");
+    }
+    log_request(req, "Request detail page")
+    res.render('pages/detail', { ejsStations: { stationCode: req.params.stationCode } });
+});
 
 app.get('/_api/state/:state/stations', async (req, res) => {
     if (!req.params.state) {
@@ -116,6 +126,18 @@ app.get('/_api/state/:state/stations', async (req, res) => {
     res.status(200).send({ stations: stations.value });
 });
 
+// api to get station detail
+app.get('/_api/station/:station/detail', async function(req,res){
+    
+    if(!req.params.station){
+        return res.status(400).send("Invalid");  
+    }
+    let stationcode = parseInt(req.params.station);
+    const RECORDING_DATA = "Details for a station";
+    let getStationDetail = async () => await db.query("SELECT `date`,`ETR (W/m^2)`,`ETRN (W/m^2)`,`GHI (W/m^2)`,`DNI (W/m^2)`,`GH illum (lx)`,`Pressure (mbar)`,`Wdir (degrees)`,`Wspd (m/s)`, `CeilHgt (m)`,`AOD (unitless)`,`Alb (unitless)` FROM station_recording WHERE station_code =?", [stationcode]);
+    let stationDetail = await station_detail_cache.get(req.params.station, getStationDetail)
+    res.status(200).send({ stationDetail: stationDetail.value})
+});
 app.listen(process.env.PORT, () => {
     log(chalk.bold('Server is up and running on ' + process.env.BASE_URL));
 });

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head'); %>
+</head>
+
+<body class="container">
+    <main>
+        <div class="jumbotron">
+            <h1 style="text-align: center;">Station Data over Time </h1>
+        </div>
+        <a href="/">Home</a>
+        
+        <div>
+            <div id='index-station-detail-select-graph'></div>
+        </div>
+
+        <div id="index-bar-graph" style="outline: 1px solid black;"></div>
+            
+    </main>
+
+    <%- include('../js/recordings.ejs'); %>
+    <footer>
+        <%- include('../partials/footer'); %>
+    </footer>
+
+</body>
+
+</html>

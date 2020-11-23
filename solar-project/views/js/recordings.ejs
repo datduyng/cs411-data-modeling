@@ -1,0 +1,43 @@
+<script>
+    let stationCode = <%- JSON.stringify(ejsStations.stationCode) %>;
+    // // this come from ejs
+    const INDEX_STATION_DETAIL_SELECT_ID = '#index-station-detail-select';
+    const MAP_ID = 'index-bar-graph';
+    $(document).ready(function () {
+       
+            $.get(`/_api/station/${stationCode}/detail`, (data) => {
+                if (!data.stationDetail|| data.stationDetail.length == 0){
+                    $(".jumbotron h1").html(("No Data Available for this Station"));
+                    return;
+                }
+                let unpack = (rows, key) => rows.map(row => row[key]);
+
+                var date = unpack(data.stationDetail, 'date');
+
+                var allCols = ['ETR (W/m^2)', 'ETRN (W/m^2)', 'GHI (W/m^2)', 'DNI (W/m^2)', 'GH illum (lx)', 'Pressure (mbar)', 'Wdir (degrees)', 'Wspd (m/s)', 'CeilHgt (m)', 'AOD (unitless)', 'Alb (unitless)'];
+
+                for (let field of allCols) {
+                    $('#index-station-detail-select-graph').append(`<div id= '${field}-solar'> </div>`);
+
+                    var temp = [
+                        {
+                            x: date,
+                            y: unpack(data.stationDetail, field),
+                            type: "bar"
+                        }
+                    ];
+                    var graphOptions = { filename: "basic-bar", fileopt: "overwrite" };
+                    var layout = {
+                        title : field+" over time",
+                        yaxis : {
+                            title: field,
+                        },
+
+                        width: 1100, height: 550
+                    };
+                    Plotly.newPlot(field+"-solar", temp, layout);
+                }
+            });
+        
+    });
+</script>
